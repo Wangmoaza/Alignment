@@ -3,7 +3,7 @@ NULL = 0
 DIAGONAL, UP, LEFT = 1, 2, 4
 DIAUP, DIALEFT = 3, 5
 
-class Element :
+class MatElement :
     def __init__(self, score):
         self.score = score
         self.direction = NULL
@@ -27,6 +27,15 @@ class Element :
     def isVisited(self):
         return self.visited
 
+class AlignedSeq :
+
+    def __init__(self, seq1, seq2):
+        self.seq1 = seq1
+        self.seq2 = seq2
+
+    def addToBoth(self, nt1, nt2):
+        self.seq1 += nt1
+        self.seq2 += nt2
 
 class GlobalAlignment :
 
@@ -36,7 +45,7 @@ class GlobalAlignment :
         self.match = match
         self.mismatch = mismatch
         self.indel = indel
-        self.table = [[Element(0) for x in range(len(seq1))] for y in range(len(seq2))]
+        self.table = [[MatElement(0) for x in range(len(seq1))] for y in range(len(seq2))]
         self.construct_matrix() # construct matrices
     ### end - __init__
 
@@ -83,38 +92,36 @@ class GlobalAlignment :
         ### end - for y
     ### end - def construct_matrix
 
-    def align(self):
+    def backtrack(self, x, y):
+        direction = self.table[x][y].getDirection()
+        newSet = set()
 
-    def backtrack(self, x, y, aligned1, aligned2):
+        # base cases
+        if x == 0 and y == 0 :
+            return { AlignedSeq("", "") }
 
-        while x > 0 and y > 0 :
-            direction = self.table[x][y].getDirection()
+        elif x == 0 :
+            return { AlignedSeq("-" * y, self.seq2[:y]) }
 
-            if direction == DIAGONAL :
-                aligned1 += self.seq1[x]
-                aligned2 += self.seq2[y]
-                self.backtrack(x-1, y-1, aligned1, aligned2)
+        elif y == 0 :
+            return { AlignedSeq(self.seq1[:x], "-" * x) }
 
-            elif direction == LEFT :
-                aligned1 += self.seq1[x]
-                aligned2 += '-'
-                self.backtrack(x-1, y, aligned1, aligned2)
+        # recursive
+        elif direction == DIAGONAL :
+            return { item.addToBoth(self.seq1[x], self.seq2[y]) for item in backtrack(x-1, y-1) }
 
-            elif direction == UP :
-                aligned1 += '-'
-                aligned2 += self.seq2[y]
-                self.backtrack(x, y-1, aligned1, aligned2)
+        elif direction == LEFT :
+            return { item.addToBoth(self.seq1[x], "-") for item in backtrack(x-1, y) }
 
-            elif direction == DIALEFT :
+        elif direction == UP :
+            return { item.addToBoth("-", self.seq2[y]) for item in backtrack(x, y-1) }
 
-                pass
+        elif direction == DIALEFT :
+            newSet.update(backtrack())
+            pass
 
-            elif direction == DIAUP :
-                pass
-
-
-
-
+        elif direction == DIAUP :
+            pass
 
 def main():
     inputStr = input()
