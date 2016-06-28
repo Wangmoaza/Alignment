@@ -5,7 +5,6 @@ for i in range(w):
     table[0][i] = 0
 
 for j in range(h):
-    table[j][0] = 0
-
+    table[j][0] = 1
 
 print(table)
